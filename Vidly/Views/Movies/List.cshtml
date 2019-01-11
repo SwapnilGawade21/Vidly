@@ -1,0 +1,350 @@
+﻿@model IEnumerable<Vidly.Models.Movie>
+@{
+    ViewBag.Title = "Movies";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Movies</h2>
+
+<p>
+    @Html.ActionLink("New Movie", "New", "Movies", null, new { @class = "btn btn-primary" })
+</p>
+
+<table id="movies" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Movie</th>
+            <th>Genre</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<table id="temp">
+    <thead>
+        <tr>
+            <th></th>
+            <th>Rented</th>
+            <th>Available</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+<div id="container"></div>
+<div id="container2" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+
+    @section scripts
+{
+        <script>
+            $(document).ready(function () {
+                var table = $("#movies").DataTable({
+                    ajax: {
+                        url: "/api/movies",
+                        dataSrc: ""
+                    },
+                    columns: [
+                        {
+                            data: "name",
+                            render: function (data, type, movie) {
+                                return "<a href='/movies/edit/" + movie.id + "'>" + movie.name + "</a>";
+                            }
+                        },
+                        {
+                            data: "genre.name"
+                        },
+                        {
+                            data: "id",
+                            render: function (data) {
+                                return "<button class='btn-link js-delete' data-movie-id=" + data + ">Delete</button>";
+                            }
+                        }
+                    ]
+                });
+
+
+                $("#movies").on("click", ".js-delete", function () {
+                    var button = $(this);
+
+                    bootbox.confirm("Are you sure you want to delete this movie?", function (result) {
+                        if (result) {
+                            $.ajax({
+                                url: "/api/movies/" + button.attr("data-movie-id"),
+                                method: "DELETE",
+                                success: function () {
+                                    table.row(button.parents("tr")).remove().draw();
+                                }
+                            });
+                        }
+                    });
+                });
+            });
+///////////////////////////////////////////////////////////////////////
+            $(document).ready(function () {
+                var table = $("#temp").DataTable({
+                    ajax: {
+                        url: "/api/movies",
+                        dataSrc: ""
+                    },
+                    columns: [
+                        {
+                            data: "name",
+
+                        },
+                        {
+                            data: "numberInStock"
+                        },
+                        {
+                            data: "numberAvailable",
+                        }
+                    ]
+                    
+                });
+                console.log("filling data");
+            });
+
+//////////////////////////////////////////////////
+            var colors = Highcharts.getOptions().colors,
+                categories = [
+                    "Die Hard",
+                    "Terminator",
+                    "Star Wars",
+                    "Batman and robin",
+                    "Hulk",
+                    "Pretty Women",
+                    "Beauty and the Beast"
+                ],
+                data = [
+                    {
+                        "y": 16.6,
+                        "color": colors[2],
+                        "drilldown": {
+                            "name": "Die Hard",
+                            "categories": [
+                                "Rented",
+                                "Available"
+                            ],
+                            "data": [
+                                6.6,
+                                10
+                            ]
+                        }
+                    },
+                    {
+                        "y": 13.3,
+                        "color": colors[1],
+                        "drilldown": {
+                            "name": "Terminator",
+                            "categories": [
+                                "Rented",
+                                "Available"
+                            ],
+                            "data": [
+                                1.63,
+                                11.6,
+                            ]
+                        }
+                    },
+                    {
+                        "y": 16.6,
+                        "color": colors[0],
+                        "drilldown": {
+                            "name": "Star Wars",
+                            "categories": [
+                                "Rented",
+                                "Available"
+                            ],
+                            "data": [
+                                11.1,
+                                5
+                            ]
+                        }
+                    },
+                    {
+                        "y": 16.6,
+                        "color": colors[3],
+                        "drilldown": {
+                            "name": "Batman and robin",
+                            "categories": [
+                                "Rented",
+                                "Available"
+                            ],
+                            "data": [
+                                8.3,
+                                8.3
+                            ]
+                        }
+                    },
+                    {
+                        "y": 10,
+                        "color": colors[5],
+                        "drilldown": {
+                            "name": "Hulk",
+                            "categories": [
+                                "Rented",
+                                "Available"
+                            ],
+                            "data": [
+                                4.4,
+                                5.6
+                            ]
+                        }
+                    },
+                    {
+                        "y": 13.3,
+                        "color": colors[4],
+                        "drilldown": {
+                            "name": "Pretty Women",
+                            "categories": [
+                                "Rented",
+                                "Available"
+                            ],
+                            "data": [
+                                8.3,
+                                5
+                            ]
+                        }
+                    },
+                    {
+                        "y": 13.3,
+                        "color": colors[6],
+                        "drilldown": {
+                            "name": 'Beauty and the Beast',
+                            "categories": [
+                                "Rented",
+                                "Available"
+                            ],
+                            "data": [
+                                6.6,
+                                6.7
+                            ]
+                        }
+                    }
+                ],
+                browserData = [],
+                versionsData = [],
+                i,
+                j,
+                dataLen = data.length,
+                drillDataLen,
+                brightness;
+
+
+            // Build the data arrays
+            for (i = 0; i < dataLen; i += 1) {
+
+                // add browser data
+                browserData.push({
+                    name: categories[i],
+                    y: data[i].y,
+                    color: data[i].color
+                });
+
+                // add version data
+                drillDataLen = data[i].drilldown.data.length;
+                for (j = 0; j < drillDataLen; j += 1) {
+                    brightness = 0.2 - (j / drillDataLen) / 5;
+                    versionsData.push({
+                        name: data[i].drilldown.categories[j],
+                        y: data[i].drilldown.data[j],
+                        color: Highcharts.Color(data[i].color).brighten(brightness).get()
+                    });
+                }
+            }
+
+            // Create the chart
+            Highcharts.chart('container', {
+                chart: {
+                    type: 'pie'
+                },
+                title: {
+                    text: 'Movie Sales, May, 2018'
+                },
+                subtitle: {
+                    text: 'Movie Chart'
+                },
+                yAxis: {
+                    title: {
+                        text: 'Total percent market share'
+                    }
+                },
+                plotOptions: {
+                    pie: {
+                        shadow: false,
+                        center: ['50%', '50%']
+                    }
+                },
+                tooltip: {
+                    valueSuffix: '%'
+                },
+                series: [{
+                    name: 'Browsers',
+                    data: browserData,
+                    size: '60%',
+                    dataLabels: {
+                        formatter: function () {
+                            return this.y > 5 ? this.point.name : null;
+                        },
+                        color: '#ffffff',
+                        distance: -30
+                    }
+                }, {
+                    name: 'Versions',
+                    data: versionsData,
+                    size: '80%',
+                    innerSize: '60%',
+                    dataLabels: {
+                        formatter: function () {
+                            // display only if larger than 1
+                            return this.y > 1 ? '<b>' + this.point.name + ':</b> ' +
+                                this.y + '%' : null;
+                        }
+                    },
+                    id: 'versions'
+                }],
+                responsive: {
+                    rules: [{
+                        condition: {
+                            maxWidth: 400
+                        },
+                        chartOptions: {
+                            series: [{
+                                id: 'versions',
+                                dataLabels: {
+                                    enabled: false
+                                }
+                            }]
+                        }
+                    }]
+                }
+            });
+
+//////////////////////////////////////////////////////////
+
+            Highcharts.chart('container2', {
+                data: {
+                    table: 'temp'
+                },
+                chart: {
+                    type: 'column'
+                },
+                title: {
+                    text: 'Data extracted from a HTML table in the page'
+                },
+                yAxis: {
+                    allowDecimals: false,
+                    title: {
+                        text: 'No. of Movies'
+                    }
+                },
+                tooltip: {
+                    formatter: function () {
+                        return '<b>' + this.series.name + '</b><br/>' +
+                            this.point.y + ' ' + this.point.name.toLowerCase();
+                        console.log("inchart");
+                    }
+                }
+            });
+
+        </script>
+}

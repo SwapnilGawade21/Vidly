@@ -1,0 +1,84 @@
+﻿@model IEnumerable<Vidly.Models.Customer>
+@{
+    ViewBag.Title = "Customers";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Customers</h2>
+
+<p>
+    @Html.ActionLink("New Customer", "New", "Customers", null, new { @class = "btn btn-primary" })
+</p>
+
+
+<table id="customers" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Customer</th>
+            <th>Membership Type</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+           var table = $("#customers").DataTable({
+                ajax: {
+                    url: "/api/customers",
+                    dataSrc: ""//reason for empty: instead of object we return a list of objects as source of data(for more details chech section:7, lecture 79)
+                },
+                columns: [
+                    {
+                        data: "name",
+                        render: function (data, type, customer) {
+                            return "<a href='/customers/edit/" + customer.id + "'>" + customer.name + "</a>";
+                        }
+                    },
+                    {
+                        data: "membershipType.name"
+                    },
+                    {
+                        data: "id",
+                        render: function (data) {
+                            return "<button class='btn-link js-delete' data-customer-id=" + data + ">Delete</button>";
+                        }
+                    }
+                ]
+            });//not preferred for massive record table; in such a case pass data to client in raw Json format
+
+
+            $("#customers").on("click", ".js-delete", function () {
+                var button = $(this);
+
+                bootbox.confirm("Are you sure you want to delete this customer?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "/api/customers/" + button.attr("data-customer-id"),
+                            method: "DELETE",
+                            success: function () {
+                                //console.log("Success");
+                                table.row(button.parents("tr")).remove().draw();
+                            }
+                        });// call api using jquery ajax
+                    }
+                });
+
+                //if (confirm("Are you sure you want to delete this customer?"))
+                //{
+                //    $.ajax({
+                //        url: "/api/customers/" + button.attr("data-customer-id"),
+                //        method: "DELETE",
+                //        success: function () {
+                //            //console.log("Success");
+                //            button.parents("tr").remove();
+                //        }
+                //    });// call api using jquery ajax
+                //}
+            });
+        });
+    </script>
+}
